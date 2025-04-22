@@ -1,5 +1,5 @@
 import ldap
-
+#ce script permet de se connecter à ldap du domaine gomycode.com en indiquant les utilisateur et les groupe dans cet annuaire
 # Informations de connexion à l'Active Directory
 ldap_server = "ldap://192.168.148.136" #l'adresse de mon serveur
 ldap_user = "Administrator@gomycode.com" #le nom de l'administrateur dans le domaine gomycode.com
