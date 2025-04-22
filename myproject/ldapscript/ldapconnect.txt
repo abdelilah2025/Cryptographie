@@ -1,0 +1,62 @@
+import ldap
+
+# Informations de connexion à l'Active Directory
+ldap_server = "ldap://192.168.148.136" #l'adresse de mon serveur
+ldap_user = "Administrator@gomycode.com" #le nom de l'administrateur dans le domaine gomycode.com
+ldap_password = "Gomycode01*"  # #le mot de passe du serveur
+base_dn = "DC=gomycode,DC=com"
+
+try:
+    # Établir la connexion LDAP
+    ldap_conn = ldap.initialize(ldap_server)
+    ldap_conn.set_option(ldap.OPT_REFERRALS, 0)
+    ldap_conn.simple_bind_s(ldap_user, ldap_password)
+    print(f"Connecté à LDAP en tant que : {ldap_user}\n")
+
+    # --- Trouver les utilisateurs ---
+    print("--- Utilisateurs trouvés ---")
+    filtre_utilisateur = "(objectClass=user)"
+    attributs_utilisateur = ["cn", "sAMAccountName", "mail"]
+    resultats_utilisateurs = ldap_conn.search_s(base_dn, ldap.SCOPE_SUBTREE, filtre_utilisateur, attributs_utilisateur)
+
+    if resultats_utilisateurs:
+        print(f"Nombre d'utilisateurs : {len(resultats_utilisateurs)}")
+        for dn, entree in resultats_utilisateurs:
+            if entree and isinstance(entree, dict):
+                print(f"  DN: {dn}")
+                for attribut, valeurs in entree.items():
+                    print(f"    {attribut}: {valeurs}")
+                print("-" * 20)
+            elif dn:
+                print(f"  DN: {dn} (aucun attribut trouvé)")
+                print("-" * 20)
+    else:
+        print("Aucun utilisateur trouvé.")
+    print("\n")
+
+    # --- Trouver les groupes ---
+    print("--- Groupes trouvés ---")
+    filtre_groupe = "(objectClass=group)"
+    attributs_groupe = ["cn", "objectSid", "description"]
+    resultats_groupes = ldap_conn.search_s(base_dn, ldap.SCOPE_SUBTREE, filtre_groupe, attributs_groupe)
+
+    if resultats_groupes:
+        print(f"Nombre de groupes : {len(resultats_groupes)}")
+        for dn, entree in resultats_groupes:
+            if entree and isinstance(entree, dict):
+                print(f"  DN: {dn}")
+                for attribut, valeurs in entree.items():
+                    print(f"    {attribut}: {valeurs}")
+                print("-" * 20)
+            elif dn:
+                print(f"  DN: {dn} (aucun attribut trouvé)")
+                print("-" * 20)
+    else:
+        print("Aucun groupe trouvé.")
+
+except ldap.LDAPError as erreur:
+    print(f"Erreur LDAP : {erreur}")
+finally:
+    if 'ldap_conn' in locals():
+        ldap_conn.unbind_s()
+        print("\nDéconnecté de LDAP.")
